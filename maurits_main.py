@@ -18,10 +18,13 @@ df = pd.read_csv(r"C:\Users\gebruiker\Documents\GitHub\DMT2021\ODI-2021.csv")
 print("the amount of records are", len(df)) # 313
 print("the amount of attributes are", len(df.columns)) # 17
 
+atts = df.columns # get attributes
+
 # kind of attributes 
 # range of values -- distribution??
     # programme: category, no range
     # taken a course on ml? --> yes, no, or unknown
+    # taken a course on inf rets? --> 1, 0 or unkown
     # taken a course on stats? --> mu, sigma, unkown
     # taken a course on databases? --> ja, nee, unknown
     # gender? --> male, female, unknown
@@ -36,7 +39,25 @@ print("the amount of attributes are", len(df.columns)) # 17
     # requisite for good day 1?
     # requisite for good day 2? --> both strings, might be able to sort into categories...
 
+# so lets start the formatting process
+# change all the 'course' questions to 1 and 0, treat the unknowns as NaN
+df.ML_course[df.ML_course == 'yes'] = 1
+df.ML_course[df.ML_course == 'no'] = 0
+df.ML_course[df.ML_course == 'unknown'] = np.nan
+df['ML_course'] = pd.to_numeric(df['ML_course'])
 
+df.InfRet_course[df.InfRet_course == 'unknown'] = np.nan
+df['InfRet_course'] = pd.to_numeric(df['InfRet_course'])
 
+df.stats_course[df.stats_course == 'mu'] = 1
+df.stats_course[df.stats_course == 'sigma'] = 0
+df.stats_course[df.stats_course == 'unknown'] = np.nan
+df['stats_course'] = pd.to_numeric(df['stats_course'])
 
+df.database_course[df.database_course == 'ja'] = 1
+df.database_course[df.database_course == 'nee'] = 0
+df.database_course[df.database_course == 'unknown'] = np.nan
+df['database_course'] = pd.to_numeric(df['database_course'])
+
+# okay we can now do linprob, probit, logit and staff for the course
 
