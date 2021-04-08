@@ -59,5 +59,36 @@ df.database_course[df.database_course == 'nee'] = 0
 df.database_course[df.database_course == 'unknown'] = np.nan
 df['database_course'] = pd.to_numeric(df['database_course'])
 
-# okay we can now do linprob, probit, logit and staff for the course
+# lets do some more work on the categorical variables:
+df['programme'] = df['programme'].str.lower()
+
+for i in range(len(df['programme'])):
+    # AI:
+    if 'ai' in df.programme[i] or 'artificial' in df.programme[i]:
+        df.programme[i] = 'AI'
+    
+    # QRM
+    elif 'qrm' in df.programme[i] or 'risk' in df.programme[i]:
+        df.programme[i] = 'QRM'
+    
+    # Computational Science
+    elif 'comp' in df.programme[i] or 'cs' in df.programme[i]:
+        df.programme[i] = 'CS'
+    
+    elif 'language' in df.programme[i]:
+        df.programme[i] = 'Human Language Technology'
+        
+    elif 'ba' in df.programme[i] or 'business' in df.programme[i]:
+        df.programme[i] = 'BA'
+        
+    elif 'informati' in df.programme[i]:
+        df.programme[i] = 'Information studies or Data Science'
+    
+    elif 'finance' in df.programme[i] or 'f&t' in df.programme[i]:
+        df.programme[i] = 'FinTech'
+
+    else:
+        df.programme[i] = 'Other'
+        
+# okay we can now do linprob, probit, logit and staff for the course vars
 
