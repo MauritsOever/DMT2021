@@ -14,12 +14,47 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #Import data.
-df = pd.read_csv('/Users/connorstevens/OneDrive - Vrije Universiteit Amsterdam/DMT/Assignment 1/train.csv')
+df = pd.read_csv('/Users/connorstevens/Downloads/df.csv')
 
-df['Age_Group'] = pd.cut(df['Age'], 8, precision = 0, labels = ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80'])
+
+#Survival histograms based on fares.
+plt.hist(df['Fare'][df['Survived'] == 1], label = 'Survived', )
+plt.hist(df['Fare'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+plt.legend()
+
+#Survival histograms based on fares above 50.
+temp = df[df['Fare'] > 40]
+plt.hist(temp['Fare'][temp['Survived'] == 1], label = 'Survived', )
+plt.hist(temp['Fare'][temp['Survived'] == 0], label = 'Died', alpha = 0.5)
+plt.legend()
+
+#Survival histograms based on age.
+plt.hist(df['Age_Group'][df['Survived'] == 1], bins = [10, 20, 30, 40, 50, 60, 70, 80], label = 'Survived')
+plt.hist(df['Age_Group'][df['Survived'] == 0], bins = [10, 20, 30, 40, 50, 60, 70, 80], label = 'Died', alpha = 0.5)
+plt.legend()
+
+#Survival histograms based on class.
+plt.hist(df['Pclass'][df['Survived'] == 1], label = 'Survived' )
+plt.hist(df['Pclass'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+plt.xlabel('Class')
+plt.ylabel('Frequency')
+plt.legend()
+
+#Survival histograms based on number of parents/children aboard.
+plt.hist(df['Parch'][df['Survived'] == 1], label = 'Survived', bins = [0, 1, 2, 3, 4, 5, 6])
+plt.hist(df['Parch'][df['Survived'] == 0], label = 'Died', alpha = 0.5 , bins = [0, 1, 2, 3, 4, 5, 6])
+plt.xlabel('Number of parents/children aboard')
+plt.ylabel('Frequency')
+plt.legend()
+
+
+plt.hist(df['Parch'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+plt.xlabel('Class')
+plt.ylabel('Frequency')
+plt.legend()
 
 sns.pairplot(df)
-sns.plt.show()
+
 
 sns.distplot(df['Age'])
 
