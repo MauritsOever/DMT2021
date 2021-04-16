@@ -126,6 +126,8 @@ DECISION TREE
 """
 from sklearn import tree
 from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import f1_score
+from sklearn.metrics import auc
 from sklearn.model_selection import train_test_split
 
 #Setting features.
@@ -139,13 +141,13 @@ y = df.Survived
 survival_model = tree.DecisionTreeClassifier()
 
 #Fit model.
-survival_model.fit(X, y)
+#survival_model.fit(X, y)
 
 #Predict using fitted model.
-prediction = survival_model.predict(X)
+#prediction = survival_model.predict(X)
 
 #Measure mean absolute error for prediction.
-mean_absolute_error(y, prediction)
+#mean_absolute_error(y, prediction)
 
 #Split dataset into train and test sets.
 train_X, val_X, train_y, val_y = train_test_split(X, y, random_state = 1)
@@ -159,12 +161,15 @@ train_prediction = survival_model.predict(val_X)
 #Measure mean absolute error for test set predictions.
 mean_absolute_error(val_y, train_prediction)
 
+f1_score(val_y, train_prediction)
+
 #Loop through differing number of leaves to compare mean absolute errors.
 def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
     model = tree.DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
     model.fit(train_X, train_y)
     preds_val = model.predict(val_X)
     mae = mean_absolute_error(val_y, preds_val)
+    #AUC = auc(val_y, preds_val)
     return(mae)
 
 # compare MAE with differing values of max_leaf_nodes
@@ -177,6 +182,19 @@ for max_leaf_nodes in [4, 40, 100, 120, 200, 400, 4000]:
 """
 RANDOM FORESTS
 """
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
 
+#Select random forest for classifier model.
+survival_model_forest = RandomForestClassifier(random_state = 0)
+
+#fit model.
+survival_model_forest.fit(train_X, train_y)
+
+#Predict on test set.
+forest_prediction = survival_model_forest.predict(val_X)
+
+#Measure mean absolute error for test set predictions.
+mean_absolute_error(val_y, forest_prediction)
+
+f1_score(val_y, forest_prediction)
   
