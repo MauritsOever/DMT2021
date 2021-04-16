@@ -230,7 +230,7 @@ survival_model_forest = RandomForestClassifier()
 survival_random = RandomizedSearchCV(estimator = survival_model_forest, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 
 # Fit the random search model
-survival_random.fit(X, y)
+survival_random.fit(train_X, train_y)
 
 #View best parameters.
 survival_random.best_params_
@@ -260,12 +260,34 @@ mean_absolute_error(val_y, predic)
 
 f1_score(val_y, predic)
 
+####RANDOM GRID SEARCH WITH CROSS-VALIDATION
+from sklearn.model_selection import GridSearchCV
 
-#Predict on test set.
-forest_prediction = survival_model_forest.predict(val_X)
+# Create the parameter grid based on the results of random search 
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [80, 90, 100, 110],
+    'max_features': [4, 8],
+    'min_samples_leaf': [3, 4, 5],
+    'min_samples_split': [8, 10, 12],
+    'n_estimators': [100, 200, 300, 1000]
+}
+# Create a based model
+cv_survival_forest = RandomForestClassifier()
 
-#Measure mean absolute error for test set predictions.
-mean_absolute_error(val_y, forest_prediction)
+# Instantiate the grid search model
+grid_search = GridSearchCV(estimator = cv_survival_forest, param_grid = param_grid, 
+                          cv = 3, n_jobs = -1, verbose = 2)
 
-f1_score(val_y, forest_prediction)
-  
+# Fit the grid search to the data
+grid_search.fit(train_X, train_y)
+
+gridpred = grid_search.predict(val_X)
+
+f1_score(val_y, gridpred)
+
+#Import test set.
+df_test = pd.read_csv('/Users/connorstevens/OneDrive - Vrije Universiteit Amsterdam/DMT/Assignment 1/test.csv')
+
+
+test_prediction = best_random.predict(val_X)
