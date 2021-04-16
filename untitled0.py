@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pprint import pprint
 
 
 #Import data.
@@ -138,7 +139,7 @@ X = df[features]
 y = df.Survived
 
 #Defining survival model as decision tree.
-survival_model = tree.DecisionTreeClassifier()
+survival_model = tree.DecisionTreeClassifier(random_state = 1)
 
 #Fit model.
 #survival_model.fit(X, y)
@@ -165,12 +166,13 @@ f1_score(val_y, train_prediction)
 
 #Loop through differing number of leaves to compare mean absolute errors.
 def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
-    model = tree.DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
+    model = tree.DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes, random_state=1)
     model.fit(train_X, train_y)
     preds_val = model.predict(val_X)
     mae = mean_absolute_error(val_y, preds_val)
+    F1 = f1_score(val_y, preds_val)
     #AUC = auc(val_y, preds_val)
-    return(mae)
+    return(mae, F1)
 
 # compare MAE with differing values of max_leaf_nodes
 for max_leaf_nodes in [4, 40, 100, 120, 200, 400, 4000]:
@@ -183,12 +185,81 @@ for max_leaf_nodes in [4, 40, 100, 120, 200, 400, 4000]:
 RANDOM FORESTS
 """
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV
 
 #Select random forest for classifier model.
-survival_model_forest = RandomForestClassifier(random_state = 0)
+survival_model_forest = RandomForestClassifier(random_state = 1)
 
 #fit model.
 survival_model_forest.fit(train_X, train_y)
+
+
+####RANDOM GRID SEARCH
+#Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(survival_model_forest.get_params())
+
+# Number of trees in random forest
+n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+# Number of features to consider at every split
+max_features = ['auto', 'sqrt']
+# Maximum number of levels in tree
+max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+max_depth.append(None)
+# Minimum number of samples required to split a node
+min_samples_split = [2, 5, 10]
+# Minimum number of samples required at each leaf node
+min_samples_leaf = [1, 2, 4]
+# Method of selecting samples for training each tree
+bootstrap = [True, False]
+# Create the random grid
+random_grid = {'n_estimators': n_estimators,
+               'max_features': max_features,
+               'max_depth': max_depth,
+               'min_samples_split': min_samples_split,
+               'min_samples_leaf': min_samples_leaf,
+               'bootstrap': bootstrap}
+pprint(random_grid)
+
+# Use the random grid to search for best hyperparameters
+# First create the base model to tune
+survival_model_forest = RandomForestClassifier()
+
+# Random search of parameters, using 3 fold cross validation, 
+# search across 100 different combinations, and use all available cores
+survival_random = RandomizedSearchCV(estimator = survival_model_forest, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+
+# Fit the random search model
+survival_random.fit(X, y)
+
+#View best parameters.
+survival_random.best_params_
+
+#Compare hyperparameters obtained above to standard random forest.
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f}'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+    
+    return accuracy
+
+base_model = RandomForestClassifier(n_estimators = 10, random_state = 42)
+base_model.fit(train_X, train_y)
+base_accuracy = evaluate(base_model, val_X, val_y)
+
+best_random = survival_random.best_estimator_
+random_accuracy = evaluate(best_random, val_X, val_y)
+
+predic = best_random.predict(val_X)
+
+mean_absolute_error(val_y, predic)
+
+f1_score(val_y, predic)
+
 
 #Predict on test set.
 forest_prediction = survival_model_forest.predict(val_X)
