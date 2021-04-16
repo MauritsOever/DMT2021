@@ -13,6 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 #Import data.
 df = pd.read_csv('/Users/connorstevens/Downloads/df.csv')
 
@@ -78,27 +79,28 @@ sns.pairplot(df)
 fig1, axs = plt.subplots(2, 2)
 axs[0, 0].hist(df['Age_Group'][df['Survived'] == 1], bins = [10, 20, 30, 40, 50, 60, 70, 80], label = 'Survived')
 axs[0, 0].hist(df['Age_Group'][df['Survived'] == 0], bins = [10, 20, 30, 40, 50, 60, 70, 80], label = 'Died', alpha = 0.5)
-axs[0,0].set_title('Age')
+#axs[0,0].set_title('Age')
+axs[0,0].set(xlabel = 'Age')
 fig1.legend()
 axs[0, 1].hist(df['Pclass'][df['Survived'] == 1], label = 'Survived' )
 axs[0, 1].hist(df['Pclass'][df['Survived'] == 0], label = 'Died', alpha = 0.5 )
-axs[0,1].set_title('Class')
-axs[1, 0].hist(df['Parch'][df['Survived'] == 1], label = 'Survived', bins = [0, 1, 2, 3, 4, 5, 6])
-axs[1, 0].hist(df['Parch'][df['Survived'] == 0], label = 'Died', bins = [0, 1, 2, 3, 4, 5, 6], alpha = 0.5)
-axs[1,0].set_title('Parents/Children Aboard')
-axs[1, 1].hist(df['Parch'][df['Survived'] == 1], label = 'Survived', bins = [0, 1, 2, 3, 4, 5, 6])
-axs[1, 1].hist(df['Parch'][df['Survived'] == 0], label = 'Died', bins = [0, 1, 2, 3, 4, 5, 6], alpha = 0.5)
-axs[1, 1].set_title('Siblings/Spouse Aboard')
+axs[0,1].set(xlabel = 'Class')
+axs[1, 0].hist(df['Sex'][df['Survived'] == 1], label = 'Survived')
+axs[1, 0].hist(df['Sex'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+axs[1,0].set(xlabel = 'Sex (Woman = 0, Man = 1)')
+axs[1, 1].hist(df['Fare'][df['Survived'] == 1], label = 'Survived')
+axs[1, 1].hist(df['Fare'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+axs[1,1].set(xlabel = 'Fare')
 fig1.tight_layout()
 
 fig2, axs = plt.subplots(2)
-axs[0].hist(df['Fare'][df['Survived'] == 1], label = 'Survived')
-axs[0].hist(df['Fare'][df['Survived'] == 0], label = 'Died', alpha = 0.5)
+axs[0].hist(df['Parch'][df['Survived'] == 1], label = 'Survived', bins = [0, 1, 2, 3, 5, 6])
+axs[0].hist(df['Parch'][df['Survived'] == 0], label = 'Died', alpha = 0.5, bins = [0, 1, 2, 3, 5, 6])
+axs[0].set(xlabel = 'Parent/Children Aboard')
 fig2.legend()
-axs[0].set_title('Fare')
-axs[1].hist(temp['Fare'][temp['Survived'] == 1], label = 'Survived', )
-axs[1].hist(temp['Fare'][temp['Survived'] == 0], label = 'Died', alpha = 0.5)
-axs[1].set_title('Fare > 40')
+axs[1].hist(df['SibSp'][df['Survived'] == 1], label = 'Survived', bins = [0, 1, 2, 3, 5])
+axs[1].hist(df['SibSp'][df['Survived'] == 0], label = 'Died', alpha = 0.5, bins = [0, 1, 2, 3, 5])
+axs[1].set(xlabel = 'Siblings/Spouse Aboard')
 fig2.tight_layout()
 
 
@@ -118,3 +120,63 @@ plt.scatter(df['Pclass'], df['Fare'])
 sum(df['Pclass'] == 1)
 sum(df['Pclass'] == 2)
 sum(df['Pclass'] == 3)
+
+"""
+DECISION TREE
+"""
+from sklearn import tree
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
+
+#Setting features.
+features = ['Sex', 'Pclass', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Age_Group']
+
+#Defining features and prediction target
+X = df[features]
+y = df.Survived
+
+#Defining survival model as decision tree.
+survival_model = tree.DecisionTreeClassifier()
+
+#Fit model.
+survival_model.fit(X, y)
+
+#Predict using fitted model.
+prediction = survival_model.predict(X)
+
+#Measure mean absolute error for prediction.
+mean_absolute_error(y, prediction)
+
+#Split dataset into train and test sets.
+train_X, val_X, train_y, val_y = train_test_split(X, y, random_state = 1)
+
+#Fit training set.
+survival_model.fit(train_X, train_y)
+
+#Predict on test set.
+train_prediction = survival_model.predict(val_X)
+
+#Measure mean absolute error for test set predictions.
+mean_absolute_error(val_y, train_prediction)
+
+#Loop through differing number of leaves to compare mean absolute errors.
+def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
+    model = tree.DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
+    model.fit(train_X, train_y)
+    preds_val = model.predict(val_X)
+    mae = mean_absolute_error(val_y, preds_val)
+    return(mae)
+
+# compare MAE with differing values of max_leaf_nodes
+for max_leaf_nodes in [4, 40, 100, 120, 200, 400, 4000]:
+    my_mae = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
+    print(my_mae)
+
+#MAE stops decreaseing above 200 leaves
+
+"""
+RANDOM FORESTS
+"""
+from sklearn.ensemble import RandomForestRegressor
+
+  
