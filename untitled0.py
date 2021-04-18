@@ -13,10 +13,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pprint import pprint
+from sklearn.impute import SimpleImputer
 
 
 #Import data.
-df = pd.read_csv('/Users/connorstevens/Downloads/df.csv')
+df = pd.read_csv('/Users/connorstevens/OneDrive - Vrije Universiteit Amsterdam/DMT/Assignment 1/train.csv')
+
+for i in range(df.shape[0]):
+    if(df['Sex'][i] == 'male'):
+        df ['Sex'][i] = 1
+    else:
+        df['Sex'][i] = 0
+        
+    if(df['Embarked'][i] == 'C'):
+        df['Embarked'][i] = 3
+    elif(df['Embarked'][i] == 'Q'):
+        df['Embarked'][i] = 2
+    elif(df['Embarked'][i] == 'S'):
+        df['Embarked'][i] = 1
+        
+df['Age_Group'] = pd.cut(df['Age'], 8, precision = 0, labels = [10, 20, 30, 40, 50, 60, 70, 80])
+
+df['Age'].fillna((df['Age'].median()), inplace=True)
+df['Fare'].fillna((df['Fare'].median()), inplace=True)
+df['Embarked'].fillna((df['Embarked'].median()), inplace=True)
+df['Age_Group'] = pd.cut(df['Age'], 8, precision = 0, labels = [10, 20, 30, 40, 50, 60, 70, 80])
 
 
 #Survival histograms based on fares.
@@ -139,7 +160,7 @@ X = df[features]
 y = df.Survived
 
 #Defining survival model as decision tree.
-survival_model = tree.DecisionTreeClassifier(random_state = 1)
+survival_model = tree.DecisionTreeClassifier(random_state = 1, max_leaf_nodes= 200)
 
 #Fit model.
 #survival_model.fit(X, y)
@@ -164,6 +185,7 @@ mean_absolute_error(val_y, train_prediction)
 
 f1_score(val_y, train_prediction)
 
+
 #Loop through differing number of leaves to compare mean absolute errors.
 def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
     model = tree.DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes, random_state=1)
@@ -171,7 +193,7 @@ def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
     preds_val = model.predict(val_X)
     mae = mean_absolute_error(val_y, preds_val)
     F1 = f1_score(val_y, preds_val)
-    #AUC = auc(val_y, preds_val)
+    AUC = auc(val_y, preds_val)
     return(mae, F1)
 
 # compare MAE with differing values of max_leaf_nodes
@@ -187,11 +209,19 @@ RANDOM FORESTS
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 
+#Setting features.
+features = ['Sex', 'Pclass', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Age_Group']
+
+#Defining features and prediction target
+X = df[features]
+y = df.Survived
+
 #Select random forest for classifier model.
 survival_model_forest = RandomForestClassifier(random_state = 1)
 
+
 #fit model.
-survival_model_forest.fit(train_X, train_y)
+survival_model_forest.fit(X, y)
 
 
 ####RANDOM GRID SEARCH
@@ -223,7 +253,7 @@ pprint(random_grid)
 
 # Use the random grid to search for best hyperparameters
 # First create the base model to tune
-survival_model_forest = RandomForestClassifier()
+survival_model_forest = RandomForestClassifier(random_state = 1)
 
 # Random search of parameters, using 3 fold cross validation, 
 # search across 100 different combinations, and use all available cores
@@ -280,7 +310,7 @@ grid_search = GridSearchCV(estimator = cv_survival_forest, param_grid = param_gr
                           cv = 3, n_jobs = -1, verbose = 2)
 
 # Fit the grid search to the data
-grid_search.fit(train_X, train_y)
+grid_search.fit(X, y)
 
 gridpred = grid_search.predict(val_X)
 
@@ -289,5 +319,31 @@ f1_score(val_y, gridpred)
 #Import test set.
 df_test = pd.read_csv('/Users/connorstevens/OneDrive - Vrije Universiteit Amsterdam/DMT/Assignment 1/test.csv')
 
+for i in range(df_test.shape[0]):
+    if(df_test['Sex'][i] == 'male'):
+        df_test['Sex'][i] = 1
+    else:
+        df_test['Sex'][i] = 0
+        
+    if(df_test['Embarked'][i] == 'C'):
+        df_test['Embarked'][i] = 3
+    elif(df_test['Embarked'][i] == 'Q'):
+        df_test['Embarked'][i] = 2
+    elif(df_test['Embarked'][i] == 'S'):
+        df_test['Embarked'][i] = 1
+        
+df_test['Age_Group'] = pd.cut(df_test['Age'], 8, precision = 0, labels = [10, 20, 30, 40, 50, 60, 70, 80])
 
-test_prediction = best_random.predict(val_X)
+df_test['Age'].fillna((df['Age'].median()), inplace=True)
+df_test['Fare'].fillna((df['Fare'].median()), inplace=True)
+df_test['Embarked'].fillna((df['Embarked'].median()), inplace=True)
+
+df_test['Age_Group'] = pd.cut(df_test['Age'], 8, precision = 0, labels = [10, 20, 30, 40, 50, 60, 70, 80])
+
+
+
+df_test['Survived'] = best_random.predict(df_test[features])
+
+submission = df_test[['PassengerId', 'Survived']]
+
+submission.to_csv('/Users/connorstevens/OneDrive - Vrije Universiteit Amsterdam/DMT/Assignment 1/Submission.csv')
