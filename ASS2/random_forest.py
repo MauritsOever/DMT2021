@@ -10,17 +10,19 @@ import pandas as pd
 # load in data, see what happens
 # fingers crossed...
 
-Train = pd.read_csv(r'C:\Users\gebruiker\Documents\GitHub\DMT2021\ASS2\Data\training_set_VU_DM.csv').iloc[1:10000,]
-Test = pd.read_csv(r'C:\Users\gebruiker\Documents\GitHub\DMT2021\ASS2\Data\test_set_VU_DM.csv').iloc[1:10000,]
+Train_original = pd.read_csv(r'C:\Users\gebruiker\Documents\GitHub\DMT2021\ASS2\Data\training_set_VU_DM.csv').iloc[1:10001,]
+Test_original = pd.read_csv(r'C:\Users\gebruiker\Documents\GitHub\DMT2021\ASS2\Data\test_set_VU_DM.csv').iloc[1:10001,]
 
-#Train = Train_full
-#Test = Test_full
+Train = Train_original
+Test = Test_original
+
 
 #clean a bit, take the columns we're interested in to predict booking
 columns = ['srch_id','site_id','visitor_location_country_id','prop_country_id', 'prop_id',
            'prop_starrating', 'prop_review_score', 'prop_brand_bool', 'prop_location_score1', 'prop_location_score2'
            ,'prop_log_historical_price','price_usd','promotion_flag', 'srch_destination_id','srch_length_of_stay',
-           'srch_booking_window','srch_adults_count','srch_children_count','srch_room_count','srch_saturday_night_bool','booking_bool']
+           'srch_booking_window','srch_adults_count','srch_children_count','srch_room_count','srch_saturday_night_bool',
+           'year', 'month', 'day', 'booking_bool']
 
 Train = Train[columns]
 Test = Test[columns[0:len(columns)-1]]
